@@ -128,7 +128,7 @@
 {
     _highlightedTintColor = highlightedTintColor;
     _viewPlayerDuration.tintColor = [self _highlightedTintColor];
-    _cancelRecordingButton.tintColor = [self _highlightedTintColor];
+    _cancelRecordingButton.tintColor = [UIColor whiteColor];
 }
 
 -(UIColor *)_highlightedTintColor
@@ -194,9 +194,9 @@
         NSBundle* bundle = [NSBundle bundleForClass:self.class];
 
         viewMicrophoneDenied.image = [[UIImage imageNamed:@"microphone_access" inBundle:bundle compatibleWithTraitCollection:nil] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        viewMicrophoneDenied.title = @"Microphone Access Denied!";
-        viewMicrophoneDenied.message = @"Unable to access microphone. Please enable microphone access in Settings.";
-        viewMicrophoneDenied.buttonTitle = @"Go to Settings";
+        viewMicrophoneDenied.title = @"Accès au micro impossible";
+        viewMicrophoneDenied.message = @"Impossible d'utiliser le micro, veuillez autoriser l'application dans les réglages.";
+        viewMicrophoneDenied.buttonTitle = @"Accéder aux réglages";
         [visualEffectView.contentView addSubview:viewMicrophoneDenied];
         
     }
@@ -282,18 +282,10 @@
 
         NSString *globallyUniqueString = [NSProcessInfo processInfo].globallyUniqueString;
 
-        if (self.audioFormat == IQAudioFormatDefault || self.audioFormat == IQAudioFormat_m4a)
-        {
-            _recordingFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.m4a",globallyUniqueString]];
+        
+        _recordingFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.aac",globallyUniqueString]];
 
-            recordSettings[AVFormatIDKey] = @(kAudioFormatMPEG4AAC);
-        }
-        else if (self.audioFormat == IQAudioFormat_caf)
-        {
-            _recordingFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.caf",globallyUniqueString]];
-
-            recordSettings[AVFormatIDKey] = @(kAudioFormatAppleLossless);
-        }
+        recordSettings[AVFormatIDKey] = @(kAudioFormatMPEG4AAC);
         
         if (self.sampleRate > 0.0f)
         {
@@ -350,7 +342,7 @@
     {
         _viewPlayerDuration = [[IQPlaybackDurationView alloc] init];
         _viewPlayerDuration.delegate = self;
-        _viewPlayerDuration.tintColor = [self _highlightedTintColor];
+        _viewPlayerDuration.tintColor = [UIColor whiteColor];
         _viewPlayerDuration.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         _viewPlayerDuration.backgroundColor = [UIColor clearColor];
     }
@@ -364,8 +356,8 @@
     {
         self.navigationController.navigationBar.barStyle = UIBarStyleDefault;
         self.navigationController.toolbar.barStyle = UIBarStyleDefault;
-        self.navigationController.navigationBar.tintColor = [self _normalTintColor];
-        self.navigationController.toolbar.tintColor = [self _normalTintColor];
+        self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+        self.navigationController.toolbar.tintColor = [UIColor whiteColor];
     }
     else
     {
@@ -622,7 +614,8 @@
 {
     //UI Update
     {
-        [self setToolbarItems:@[_stopRecordingButton,_flexItem, _pauseRecordingButton,_flexItem, _cropOrDeleteButton] animated:YES];
+        [self setToolbarItems:@[_playButton,_flexItem, _stopRecordingButton,_flexItem, _cropOrDeleteButton] animated:YES];
+        _playButton.enabled = NO;
         _cropOrDeleteButton.enabled = NO;
         [self.navigationItem setLeftBarButtonItem:_cancelRecordingButton animated:YES];
         _doneButton.enabled = NO;
@@ -673,6 +666,7 @@
 
 -(void)stopRecordingButtonAction:(UIBarButtonItem*)item
 {
+    
     _isRecordingPaused = NO;
     [_audioRecorder stop];
 }
@@ -791,28 +785,13 @@
 
 -(void)deleteAction:(UIBarButtonItem*)item
 {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"Delete Recording"
-                                                      style:UIAlertActionStyleDestructive
-                                                    handler:^(UIAlertAction *action){
 
-                                                        [[NSFileManager defaultManager] removeItemAtPath:_recordingFilePath error:nil];
-                                                        
-                                                        _playButton.enabled = NO;
-                                                        _cropOrDeleteButton.enabled = NO;
-                                                        _doneButton.enabled = NO;
-                                                        self.navigationItem.title = _navigationTitle;
-                                                    }];
-    
-    UIAlertAction *action2 = [UIAlertAction actionWithTitle:@"Cancel"
-                                                      style:UIAlertActionStyleCancel
-                                                    handler:nil];
-    
-    [alert addAction:action1];
-    [alert addAction:action2];
-    alert.popoverPresentationController.barButtonItem = item;
-    [self presentViewController:alert animated:YES completion:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:_recordingFilePath error:nil];
+
+    _playButton.enabled = NO;
+    _cropOrDeleteButton.enabled = NO;
+    _doneButton.enabled = NO;
+    self.navigationItem.title = _navigationTitle;
 }
 
 #pragma mark - Message Display View
